@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import MapKit
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -15,28 +16,32 @@ struct ContentView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
         animation: .default)
     private var items: FetchedResults<Item>
+    
+    @State private var position = MapCameraPosition.region(
+            MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 42.7878, longitude: -74.9323),
+                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            )
+        )
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
+        VStack {
+                Map(position: $position) {
+                    // Add map content here using the new APIs (Marker, Annotation, UserAnnotation)
+
+                    // Example: Add a Marker
+                    Marker("My Location", coordinate: CLLocationCoordinate2D(latitude: 42.7878, longitude: -74.9323))
+
+                    // Example: Show the user's current location control
+                    UserAnnotation()
                 }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+                .mapControls {
+                    // Add built-in controls (optional)
+                    MapUserLocationButton()
+                    MapCompass()
+                    MapScaleView()
                 }
             }
-            Text("Select an item")
-        }
     }
 
     private func addItem() {
@@ -78,6 +83,11 @@ private let itemFormatter: DateFormatter = {
     return formatter
 }()
 
+// 6. Helper struct to make CLLocationCoordinate2D identifiable for annotationItems
+struct CLLocationCoordinate2DWrapper: Identifiable {
+    let id = UUID()
+    var coordinate: CLLocationCoordinate2D
+}
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
