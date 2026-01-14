@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import CoreLocation
 import MapKit
 
 struct ContentView: View {
@@ -17,10 +18,14 @@ struct ContentView: View {
         animation: .default)
     private var items: FetchedResults<Item>
     
+    @State private var route: MKRoute?
+    
+    @State private var directions_to_school = requestDirectionsWithMapItems
+    
     @State private var position = MapCameraPosition.region(
             MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: 42.7878, longitude: -74.9323),
-                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                center: CLLocationCoordinate2D(latitude: 28.56326, longitude: -81.60827),
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             )
         )
 
@@ -30,7 +35,14 @@ struct ContentView: View {
                     // Add map content here using the new APIs (Marker, Annotation, UserAnnotation)
 
                     // Example: Add a Marker
-                    Marker("My Location", coordinate: CLLocationCoordinate2D(latitude: 42.7878, longitude: -74.9323))
+                    Marker("My Location", coordinate: CLLocationCoordinate2D(latitude: 28.56326, longitude: -81.60827))
+                    
+//                    requestDirectionsWithMapItems()
+                    if let route {
+                        MapPolyline(route.polyline)
+                            .stroke(.blue, lineWidth: 5)
+                    }
+                    
 
                     // Example: Show the user's current location control
                     UserAnnotation()
@@ -41,53 +53,19 @@ struct ContentView: View {
                     MapCompass()
                     MapScaleView()
                 }
+                .onAppear{
+                    requestDirectionsWithMapItems()
+                }
             }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
     }
 }
-
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
 // 6. Helper struct to make CLLocationCoordinate2D identifiable for annotationItems
 struct CLLocationCoordinate2DWrapper: Identifiable {
     let id = UUID()
     var coordinate: CLLocationCoordinate2D
 }
+
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
