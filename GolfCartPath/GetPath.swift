@@ -4,54 +4,62 @@ import CoreLocation
 import Contacts // Required for address dictionary constants if needed
 internal import Combine
 
+public let endLat = 28.56053
+public let endLong = -81.60863
+
+@Observable
 class MapViewCalculator: ObservableObject {
-    @Published var my_route: MKRoute?
+    var my_route: MKRoute?
+    var startCoord = CLLocationCoordinate2D(latitude: startLat, longitude: startLong)
+    var endCoord = CLLocationCoordinate2D(latitude: endLat, longitude: endLong)
+    
+    init(){}
+    
+    init(startLatitude: Double, startLongitude: Double, endLatitude: Double, endLongitude: Double){
+        self.startCoord = CLLocationCoordinate2D(
+            latitude: startLatitude,
+            longitude: startLongitude)
+        self.endCoord = CLLocationCoordinate2D(
+            latitude: endLatitude,
+            longitude: endLongitude)
+    }
     
     func requestDirectionsWithMapItems() {
-//        print("HelllOOOOooooo!!!! from requestDirectionsWithMapItems")
-        // 1. Define coordinates for source and destination
-        let sourceCoordinate = CLLocationCoordinate2D(latitude: 28.56326, longitude: -81.60827) // Example: New York City
-        let destinationCoordinate = CLLocationCoordinate2D(latitude: 28.56053, longitude: -81.60863) // Example: Los Angeles
+        let startLocation = CLLocation(
+            latitude: startCoord.latitude,
+            longitude: startCoord.longitude)
+        let endLocation = CLLocation(
+            latitude: self.endCoord.latitude,
+            longitude: self.endCoord.longitude)
 
-        // 2. Create CLLocation objects for the locations
-        let sourceLocation = CLLocation(latitude: sourceCoordinate.latitude, longitude: sourceCoordinate.longitude)
-        let destinationLocation = CLLocation(latitude: destinationCoordinate.latitude, longitude: destinationCoordinate.longitude)
-
-        // 3. (Optional) Create MKAddress objects for more detailed information.
-        // If you only have coordinates, you can pass 'nil' for the address,
-        // or use a geocoder to fetch the full address details.
-        let sourceAddress = MKAddress(fullAddress: "85 Desiree Aurora St, Winter Garden, FL, USA", shortAddress: "Home")
-        let destinationAddress = MKAddress(fullAddress: "1065 Tildenville Dr, Winter Garden, FL, USA", shortAddress: "DropOff")
-
-        // 4. Create MKMapItem objects using the modern initializer
-        let sourceMapItem = MKMapItem(location: sourceLocation, address: sourceAddress)
-        sourceMapItem.name = "Starting Point" // Set a display name
+        let start = MKMapItem(
+            location: startLocation,
+            address: nil)
+        start.name = "Starting Point"
         
-        let destinationMapItem = MKMapItem(location: destinationLocation, address: destinationAddress)
-        destinationMapItem.name = "Final Destination"
+        let end = MKMapItem(
+            location: endLocation,
+            address: nil)
+        end.name = "Final Destination"
 
-        // 5. Create the MKDirections.Request
         let request = MKDirections.Request()
-        request.source = sourceMapItem
-        request.destination = destinationMapItem
+        request.source = start
+        request.destination = end
         request.transportType = .automobile
-        request.requestsAlternateRoutes = true
 
-        // 6. Calculate the directions
         let directions = MKDirections(request: request)
         directions.calculate { response, error in
             guard let response = response, error == nil else {
-                // Handle the error appropriately
                 print("Error calculating directions: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
 
-            // Process the response (e.g., add routes to an MKMapView)
             if let route = response.routes.first {
                 print("Successfully calculated route. Distance: \(route.distance) meters")
                 self.my_route = route
                 return
             }
+            print("no route found")
             return
         }
     }
