@@ -18,9 +18,9 @@ struct ContentView: View {
         animation: .default)
     private var items: FetchedResults<Item>
     
-    @State private var route: MKRoute?
+    @StateObject var mapViewModel = MapViewCalculator()
     
-    @State private var directions_to_school = requestDirectionsWithMapItems
+    @State private var directions_to_school: MKRoute?
     
     @State private var position = MapCameraPosition.region(
             MKCoordinateRegion(
@@ -37,12 +37,10 @@ struct ContentView: View {
                     // Example: Add a Marker
                     Marker("My Location", coordinate: CLLocationCoordinate2D(latitude: 28.56326, longitude: -81.60827))
                     
-//                    requestDirectionsWithMapItems()
-                    if let route {
-                        MapPolyline(route.polyline)
-                            .stroke(.blue, lineWidth: 5)
+                    if let route = mapViewModel.my_route {
+                        MapPolyline(route) // Draws the polyline from the MKRoute
+                            .stroke(.blue, lineWidth: 5) // Customize the appearance
                     }
-                    
 
                     // Example: Show the user's current location control
                     UserAnnotation()
@@ -54,7 +52,14 @@ struct ContentView: View {
                     MapScaleView()
                 }
                 .onAppear{
-                    requestDirectionsWithMapItems()
+                    Task {
+                        mapViewModel.requestDirectionsWithMapItems()
+                        
+                        // Optional: focus the map on the route
+                        if let boundingBox = mapViewModel.my_route?.polyline.boundingMapRect {
+                            position = .rect(boundingBox)
+                        }
+                    }
                 }
             }
     }
