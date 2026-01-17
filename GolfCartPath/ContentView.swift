@@ -17,7 +17,6 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     @StateObject var mapViewModel = MapViewCalculator()
-    @State private var directions_to_school: MKRoute?
     @State private var position = MapCameraPosition.region(
             MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: startLat, longitude: startLong),
@@ -45,7 +44,7 @@ struct ContentView: View {
                 MapScaleView()
             }
             .onAppear{
-                mapViewModel.requestDirectionsWithMapItems()
+                mapViewModel.calculate_path_to_school()
             }
         }
     }

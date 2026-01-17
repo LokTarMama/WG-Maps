@@ -24,7 +24,7 @@ class MapViewCalculator: ObservableObject {
             longitude: endLongitude)
     }
     
-    func requestDirectionsWithMapItems() {
+    func calculate_path_to_school() {
         let startLocation = CLLocation(
             latitude: startCoord.latitude,
             longitude: startCoord.longitude)

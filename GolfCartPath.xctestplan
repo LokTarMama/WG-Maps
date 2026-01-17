@@ -1,0 +1,41 @@
+{
+  "configurations" : [
+    {
+      "id" : "16A782C2-2891-4C5A-B418-738D9A9124B7",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "addressSanitizer" : {
+      "enabled" : true
+    },
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:GolfCartPath.xcodeproj",
+      "identifier" : "46737A042F12EC4000552CCC",
+      "name" : "GolfCartPath"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:GolfCartPath.xcodeproj",
+        "identifier" : "46737A162F12EC4100552CCC",
+        "name" : "GolfCartPathTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:GolfCartPath.xcodeproj",
+        "identifier" : "46737A202F12EC4100552CCC",
+        "name" : "GolfCartPathUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
