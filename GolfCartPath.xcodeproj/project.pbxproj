@@ -29,6 +29,7 @@
 		46737A212F12EC4100552CCC /* GolfCartPathUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GolfCartPathUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		46737A342F12ED2600552CCC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.xcfilelist; };
 		4699F58E2F19B275004948F5 /* GolfCartPath.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = GolfCartPath.xctestplan; sourceTree = "<group>"; };
+		46C011FE2F1D39930043FE67 /* Golf_Cart_District_Official.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Golf_Cart_District_Official.pdf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -77,6 +78,7 @@
 		467379FC2F12EC4000552CCC = {
 			isa = PBXGroup;
 			children = (
+				46C011FE2F1D39930043FE67 /* Golf_Cart_District_Official.pdf */,
 				4699F58E2F19B275004948F5 /* GolfCartPath.xctestplan */,
 				46737A342F12ED2600552CCC /* README.md */,
 				46737A072F12EC4000552CCC /* GolfCartPath */,

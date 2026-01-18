@@ -27,21 +27,23 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            Map(position: $position) {
+            Map(position: $position, content: {
                 Marker("My Location", coordinate: CLLocationCoordinate2D(
                         latitude: startLat,
                         longitude: startLong)
                 )
                 
-                if let route = mapViewModel.my_route {
-                    MapPolyline(route)
-                        .stroke(.blue, lineWidth: 5)
-                }
+                
+//                // Iterate over individual MKPolygons within the MKMultiPolygon
+//                ForEach(winterGarden.getMultiPolygon().polygons, id: \.hashValue) { polygon in
+//                    MapPolygon(polygon)
+//                        .stroke(.blue, lineWidth: 2) // Style your polygon
+//                }
 
                 MapPolygon(winterGarden.getPolygon())
                     .stroke(.blue, lineWidth: 2)
                     .foregroundStyle(Color.blue.opacity(0.3))
-            }
+            })
             .mapControls {
                 // Add built-in controls (optional)
                 MapUserLocationButton()
