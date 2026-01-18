@@ -55,7 +55,3 @@ struct CLLocationCoordinate2DWrapper: Identifiable {
     let id = UUID()
     var coordinate: CLLocationCoordinate2D
 }
-
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-}
