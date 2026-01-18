@@ -17,5 +17,17 @@ struct WinterGarden {
         ]
         return MKPolygon(coordinates: points, count: points.count)
     }
+    
+    func is_valid_point(location: CLLocationCoordinate2D) -> Bool {
+        let location_point = MKMapPoint(location)
+        let districtRenderer = MKPolygonRenderer(polygon: getPolygon())
+        let renderedPoint = districtRenderer.point(for: location_point)
+        if !districtRenderer.path.contains(renderedPoint) {
+            print("CGPoint was out of range")
+            return false
+        }
+        
+        return true
+    }
 }
 
