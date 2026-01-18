@@ -23,6 +23,7 @@ struct ContentView: View {
                 span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             )
         )
+    let winterGarden = WinterGarden()
 
     var body: some View {
         VStack {
@@ -36,6 +37,10 @@ struct ContentView: View {
                     MapPolyline(route)
                         .stroke(.blue, lineWidth: 5)
                 }
+
+                MapPolygon(winterGarden.getPolygon())
+                    .stroke(.blue, lineWidth: 2)
+                    .foregroundStyle(Color.blue.opacity(0.3))
             }
             .mapControls {
                 // Add built-in controls (optional)
@@ -55,3 +60,4 @@ struct CLLocationCoordinate2DWrapper: Identifiable {
     let id = UUID()
     var coordinate: CLLocationCoordinate2D
 }
+
