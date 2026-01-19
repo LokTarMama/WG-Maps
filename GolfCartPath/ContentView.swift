@@ -33,16 +33,16 @@ struct ContentView: View {
                         longitude: startLong)
                 )
                 
+                ForEach(winterGarden.getMultiPolygon().polygons, id: \.hashValue) { polygon in
+                    MapPolygon(polygon)
+                        .stroke(.blue, lineWidth: 2)
+                        .foregroundStyle(Color.blue.opacity(0.3))
+                }
                 
-//                // Iterate over individual MKPolygons within the MKMultiPolygon
-//                ForEach(winterGarden.getMultiPolygon().polygons, id: \.hashValue) { polygon in
-//                    MapPolygon(polygon)
-//                        .stroke(.blue, lineWidth: 2) // Style your polygon
-//                }
-
-                MapPolygon(winterGarden.getPolygon())
-                    .stroke(.blue, lineWidth: 2)
-                    .foregroundStyle(Color.blue.opacity(0.3))
+                if let route = mapViewModel.my_route {
+                    MapPolyline(route)
+                        .stroke(.blue, lineWidth: 5)
+                }
             })
             .mapControls {
                 // Add built-in controls (optional)

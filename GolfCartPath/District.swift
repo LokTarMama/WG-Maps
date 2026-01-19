@@ -8,74 +8,18 @@
 import MapKit
 
 struct WinterGarden {
-    private let wg_calculated_coords_dict: [String: [(Double, Double)]] = [
-        "Downtown / central grid (Plant St / Dillard / core)": [
-            (28.5728, -81.6465),
-            (28.5728, -81.6340),
-            (28.5652, -81.6340),
-            (28.5652, -81.6465),
-            (28.5728, -81.6465)
-        ],
-        "West / south-west neighborhoods (toward the larger western residential blocks)": [
-            (28.5685, -81.6735),
-            (28.5685, -81.6545),
-            (28.5550, -81.6545),
-            (28.5550, -81.6735),
-            (28.5685, -81.6735)
-        ],
-        "Far-west lakeside edge / northwest corridors (ok to include lake)": [
-            (28.5885, -81.6755),
-            (28.5885, -81.6575),
-            (28.5730, -81.6575),
-            (28.5730, -81.6755),
-            (28.5885, -81.6755)
-        ],
-        "North-central neighborhoods (between lake edge and downtown)": [
-            (28.5880, -81.6515),
-            (28.5880, -81.6325),
-            (28.5735, -81.6325),
-            (28.5735, -81.6515),
-            (28.5880, -81.6515)
-        ],
-        "East-of-downtown corridor band (connectors heading east)": [
-            (28.5750, -81.6325),
-            (28.5750, -81.6135),
-            (28.5640, -81.6135),
-            (28.5640, -81.6325),
-            (28.5750, -81.6325)
-        ],
-        "North-east neighborhoods (large looping residential area)": [
-            (28.5885, -81.6325),
-            (28.5885, -81.6060),
-            (28.5720, -81.6060),
-            (28.5720, -81.6325),
-            (28.5885, -81.6325)
-        ],
-        "South / south-central neighborhoods (below downtown grid)": [
-            (28.5655, -81.6465),
-            (28.5655, -81.6280),
-            (28.5525, -81.6280),
-            (28.5525, -81.6465),
-            (28.5655, -81.6465)
-        ],
-        "South-east pockets (smaller blue clusters toward SR-429 side, but not the highway itself)": [
-            (28.5625, -81.6200),
-            (28.5625, -81.6025),
-            (28.5505, -81.6025),
-            (28.5505, -81.6200),
-            (28.5625, -81.6200)
-        ]
+    private let wg_calculated_coords_list = [
+        SubDistrict(
+            metadata: SubDistrictMetadata(id: 0, name: "", description: ""),
+            area: MKPolygon(
+                coordinates: convert_to_coords(rawCoords: tildenville_elementary_raw_coords),
+                count: tildenville_elementary_raw_coords.count))
     ]
-        
     
     func getPolygons() -> [MKPolygon] {
         var allPolygons: [MKPolygon] = []
-        for (_, rawCoordList) in wg_calculated_coords_dict{
-            var allCoords: [CLLocationCoordinate2D] = []
-            for rawCoord in rawCoordList {
-                allCoords.append(CLLocationCoordinate2D(latitude: rawCoord.0, longitude: rawCoord.1))
-            }
-            allPolygons.append(MKPolygon(coordinates: allCoords, count: allCoords.count))
+        for subDisctrict in wg_calculated_coords_list{
+            allPolygons.append(subDisctrict.area)
         }
         return allPolygons
     }
@@ -122,3 +66,46 @@ struct WinterGarden {
     }
 }
 
+struct SubDistrict {
+    let metadata: SubDistrictMetadata
+    let area: MKPolygon
+    
+    init(metadata: SubDistrictMetadata, area: MKPolygon) {
+        self.metadata = metadata
+        self.area = area
+    }
+}
+
+struct SubDistrictMetadata : Codable {
+    let id: Int
+    let name: String
+    let description: String
+    
+    init(id: Int, name: String, description: String) {
+        self.id = id
+        self.name = name
+        self.description = description
+    }
+}
+
+let custome_route = MKRoute()
+
+let tildenville_elementary_raw_coords = [
+    (28.55739, -81.60893, "1344 Brick Road"),
+    (28.55479, -81.61184, "801-811 Oakland Park Blvd"),
+    (28.55477, -81.61581, "15541 E Oakland Ave"),
+    (28.56874, -81.61710, "NorthWest corner in Lake Apopka"),
+    (28.56885, -81.60658, "NorthEast corner in Lake Apopka"),
+    (28.55744, -81.60455, "1124 Brik Road"),
+    (28.55739, -81.60893, "1344 Brick Road")
+]
+
+func convert_to_coords(rawCoords: [(Double, Double, String)]) -> [CLLocationCoordinate2D] {
+    var convertedCoords: [CLLocationCoordinate2D] = []
+    
+    for rawCoord in rawCoords {
+        convertedCoords.append(CLLocationCoordinate2D(latitude: rawCoord.0, longitude: rawCoord.1))
+    }
+    
+    return convertedCoords
+}
