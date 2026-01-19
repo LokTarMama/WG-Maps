@@ -27,7 +27,7 @@ struct MapViewCalculatorTests {
 
         let resultRoute: MKRoute? = await MainActor.run { self.testClient.my_route }
         let unwrappedRoute = try #require(resultRoute)
-        #expect(unwrappedRoute.distance == 2858.0)
+        #expect(unwrappedRoute.distance == 623.0)
     }
 }
 

@@ -45,22 +45,42 @@ class MapViewCalculator: ObservableObject {
         let request = MKDirections.Request()
         request.source = start
         request.destination = end
-        request.transportType = .automobile
+        request.requestsAlternateRoutes = true
+        request.highwayPreference = .avoid
 
-        let directions = MKDirections(request: request)
-        directions.calculate { response, error in
-            guard let response = response, error == nil else {
-                print("Error calculating directions: \(error?.localizedDescription ?? "Unknown error")")
+        for transport in [MKDirectionsTransportType.automobile, MKDirectionsTransportType.cycling, MKDirectionsTransportType.walking] {
+            request.transportType = transport
+            let directions = MKDirections(request: request)
+            directions.calculate { response, error in
+                guard let response = response, error == nil else {
+                    print("Error calculating directions: \(error?.localizedDescription ?? "Unknown error")")
+                    return
+                }
+
+                print("found \(response.routes.count) routes")
+                for route in response.routes{
+                    print("PREcalculated route: \(route.distance) meters")
+                    if WinterGarden().is_valid_route(route: route) {
+                        print("Found a valid route! Distance: \(route.distance) meters")
+                        if self.my_route == nil  {
+                            self.my_route = route
+                            return
+                        }
+                        if self.my_route!.distance > route.distance {
+                            print("found shorter route; replacing")
+                            self.my_route = route
+                            return
+                        }
+                    }
+                }
+//                if let route = response.routes.first {
+//                    print("Successfully calculated route. Distance: \(route.distance) meters")
+//                    self.my_route = route
+//                    return
+//                }
+                print("no route found")
                 return
             }
-
-            if let route = response.routes.first {
-                print("Successfully calculated route. Distance: \(route.distance) meters")
-                self.my_route = route
-                return
-            }
-            print("no route found")
-            return
         }
     }
 }
