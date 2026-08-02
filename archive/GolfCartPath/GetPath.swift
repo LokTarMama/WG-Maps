@@ -73,11 +73,6 @@ class MapViewCalculator: ObservableObject {
                         }
                     }
                 }
-//                if let route = response.routes.first {
-//                    print("Successfully calculated route. Distance: \(route.distance) meters")
-//                    self.my_route = route
-//                    return
-//                }
                 print("no route found")
                 return
             }
