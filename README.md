@@ -2,7 +2,7 @@
 
 A Go web app for exploring golf-cart-accessible routes around downtown Winter Garden, Florida.
 
-The browser displays the supported district, accepts a starting point and destination, and asks the Go server for road-route candidates. The server returns the first candidate whose complete geometry stays inside the district boundary.
+The browser displays the supported district and translated golf-cart roadways. Approved OpenStreetMap way IDs provide exact road geometry, including explicitly approved private roads. The Go server snaps locations to that allowlisted graph only when they are within 50 meters, then uses Dijkstra's algorithm to find the shortest connected path.
 
 ## Run locally
 
@@ -12,18 +12,13 @@ Go 1.26 or newer is recommended.
 go run ./cmd/server
 ```
 
-Open <http://localhost:8080>. The map and default routing service require an internet connection.
+Open <http://localhost:8080>. The server loads allowlisted road geometry from OpenStreetMap once at startup; route calculation then runs locally.
 
 Run the tests with:
 
 ```sh
 go test ./...
 ```
-
-Configuration:
-
-- `ADDR` changes the listening address (default `:8080`).
-- `ROUTER_URL` changes the OSRM-compatible routing service.
 
 ## Project layout
 
@@ -34,4 +29,6 @@ Configuration:
 
 ## Important limitation
 
-Remaining inside a district boundary does not prove that every road is legal or safe for golf carts. This prototype must be checked against the city's current street-level rules before being used for navigation. See the [official Winter Garden golf cart information](https://www.cwgdn.com/480/Golf-Cart-Information).
+The current road graph is a small pilot transcription around the original Tildenville test route. Its segments are deliberately marked unverified. Every segment must be checked against the city's current map and street-level rules before the app is used for navigation. See the [official Winter Garden golf cart information](https://www.cwgdn.com/480/Golf-Cart-Information).
+
+The pilot allowlist includes Civitas Way and Zachary Wade Street, along with their exact OpenStreetMap centerline geometry.

@@ -9,17 +9,12 @@ import (
 )
 
 func main() {
-	addr := env("ADDR", ":8080")
-	routerURL := env("ROUTER_URL", "https://router.project-osrm.org")
-
-	server := app.NewServer(routerURL)
+	const addr = ":8080"
+	osmURL := os.Getenv("OSM_URL")
+	if osmURL == "" {
+		osmURL = "https://api.openstreetmap.org"
+	}
+	server := app.NewServer(osmURL)
 	log.Printf("Golf Cart Path is available at http://localhost%s", addr)
 	log.Fatal(http.ListenAndServe(addr, server.Routes()))
-}
-
-func env(name, fallback string) string {
-	if value := os.Getenv(name); value != "" {
-		return value
-	}
-	return fallback
 }

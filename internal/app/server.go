@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -16,20 +17,24 @@ import (
 var webFiles embed.FS
 
 type Server struct {
-	routerURL string
-	client    *http.Client
+	osmURL      string
+	client      *http.Client
+	networkOnce sync.Once
+	network     *RoadNetwork
+	networkErr  error
 }
 
-func NewServer(routerURL string) *Server {
+func NewServer(osmURL string) *Server {
 	return &Server{
-		routerURL: strings.TrimRight(routerURL, "/"),
-		client:    &http.Client{Timeout: 12 * time.Second},
+		osmURL: strings.TrimRight(osmURL, "/"),
+		client: &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/district", s.district)
+	mux.HandleFunc("GET /api/network", s.networkData)
 	mux.HandleFunc("GET /api/route", s.route)
 	assets, err := fs.Sub(webFiles, "web")
 	if err != nil {
@@ -43,16 +48,13 @@ func (s *Server) district(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, winterGarden)
 }
 
-type osrmResponse struct {
-	Code   string `json:"code"`
-	Routes []struct {
-		Distance float64 `json:"distance"`
-		Duration float64 `json:"duration"`
-		Geometry struct {
-			Coordinates [][]float64 `json:"coordinates"`
-			Type        string      `json:"type"`
-		} `json:"geometry"`
-	} `json:"routes"`
+func (s *Server) networkData(w http.ResponseWriter, _ *http.Request) {
+	network, err := s.roadNetwork()
+	if err != nil {
+		writeError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, network)
 }
 
 func (s *Server) route(w http.ResponseWriter, r *http.Request) {
@@ -66,43 +68,28 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if !winterGarden.Contains(start) || !winterGarden.Contains(end) {
-		writeError(w, http.StatusBadRequest, "both points must be inside the supported district")
-		return
-	}
-
-	endpoint := fmt.Sprintf("%s/route/v1/driving/%f,%f;%f,%f?alternatives=true&overview=full&geometries=geojson",
-		s.routerURL, start.Longitude, start.Latitude, end.Longitude, end.Latitude)
-	response, err := s.client.Get(endpoint)
+	network, err := s.roadNetwork()
 	if err != nil {
-		writeError(w, http.StatusBadGateway, "routing service is unavailable")
+		writeError(w, http.StatusBadGateway, err.Error())
 		return
 	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		writeError(w, http.StatusBadGateway, "routing service returned an error")
+	route, err := network.Route(start, end)
+	if err != nil {
+		status := http.StatusNotFound
+		if strings.Contains(err.Error(), "meters from the translated network") {
+			status = http.StatusBadRequest
+		}
+		writeError(w, status, err.Error())
 		return
 	}
+	writeJSON(w, http.StatusOK, route)
+}
 
-	var candidates osrmResponse
-	if err := json.NewDecoder(response.Body).Decode(&candidates); err != nil {
-		writeError(w, http.StatusBadGateway, "routing service returned invalid data")
-		return
-	}
-	for _, candidate := range candidates.Routes {
-		valid := true
-		for _, coordinate := range candidate.Geometry.Coordinates {
-			if len(coordinate) < 2 || !winterGarden.Contains(Point{Latitude: coordinate[1], Longitude: coordinate[0]}) {
-				valid = false
-				break
-			}
-		}
-		if valid {
-			writeJSON(w, http.StatusOK, candidate)
-			return
-		}
-	}
-	writeError(w, http.StatusNotFound, "no route stays inside the supported district")
+func (s *Server) roadNetwork() (*RoadNetwork, error) {
+	s.networkOnce.Do(func() {
+		s.network, s.networkErr = loadApprovedNetwork(s.client, s.osmURL)
+	})
+	return s.network, s.networkErr
 }
 
 func queryPoint(values url.Values, name string) (Point, error) {

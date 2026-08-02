@@ -5,6 +5,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 let district;
+let roadNetwork;
 let start;
 let end;
 let routeLine;
@@ -21,6 +22,17 @@ fetch("/api/district")
   })
   .catch(() => setStatus("Could not load the district."));
 
+fetch("/api/network")
+  .then(response => response.json())
+  .then(data => {
+    roadNetwork = L.featureGroup(data.segments.map(segment =>
+      L.polyline(segment.coordinates.map(point => [point.latitude, point.longitude]), {
+        color: "#2672d3", weight: 6, opacity: segment.verified ? 1 : 0.75
+      }).bindTooltip(`${segment.name}${segment.verified ? "" : " (pilot transcription)"}`)
+    )).addTo(map);
+  })
+  .catch(() => setStatus("Could not load the translated road network."));
+
 map.on("click", event => choosePoint(event.latlng));
 document.querySelector("#resetButton").addEventListener("click", reset);
 document.querySelector("#locationButton").addEventListener("click", () => {
@@ -32,8 +44,8 @@ document.querySelector("#locationButton").addEventListener("click", () => {
 });
 
 function choosePoint(point) {
-  if (!district || !district.getBounds().contains(point) || !pointInPolygon(point, district.getLatLngs()[0])) {
-    setStatus("That point is outside the supported district.");
+  if (!roadNetwork) {
+    setStatus("The translated road network is still loading.");
     return;
   }
   if (start && end) reset();
@@ -75,12 +87,3 @@ function reset() {
 }
 
 function setStatus(message) { status.textContent = message; }
-
-function pointInPolygon(point, polygon) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const a = polygon[i], b = polygon[j];
-    if ((a.lat > point.lat) !== (b.lat > point.lat) && point.lng < (b.lng - a.lng) * (point.lat - a.lat) / (b.lat - a.lat) + a.lng) inside = !inside;
-  }
-  return inside;
-}
