@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Golf Cart Path</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Winter Garden, Florida</p>
+      <h1>Golf Cart Path</h1>
+      <p>Choose two points inside the shaded district to find a route that stays within it.</p>
+    </header>
+    <section class="panel" aria-label="Route controls">
+      <div class="steps"><span id="startText">1. Choose a starting point</span><span id="endText">2. Choose a destination</span></div>
+      <div class="actions">
+        <button id="locationButton" type="button">Use my location</button>
+        <button id="resetButton" class="secondary" type="button">Reset</button>
+      </div>
+      <p id="status" role="status">Click the map to begin.</p>
+    </section>
+    <div id="map" aria-label="Map of the Winter Garden golf cart district"></div>
+    <footer>Routes are candidates only. Always follow posted signs and the <a href="https://www.cwgdn.com/480/Golf-Cart-Information" target="_blank" rel="noreferrer">official city guidance</a>.</footer>
+  </main>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

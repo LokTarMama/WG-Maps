@@ -1,0 +1,86 @@
+const map = L.map("map").setView([28.562, -81.6105], 15);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+
+let district;
+let start;
+let end;
+let routeLine;
+const markers = [];
+const status = document.querySelector("#status");
+
+fetch("/api/district")
+  .then(response => response.json())
+  .then(data => {
+    district = L.polygon(data.boundary.map(point => [point.latitude, point.longitude]), {
+      color: "#26725d", fillColor: "#58a58b", fillOpacity: 0.24, weight: 3
+    }).addTo(map);
+    map.fitBounds(district.getBounds(), { padding: [24, 24] });
+  })
+  .catch(() => setStatus("Could not load the district."));
+
+map.on("click", event => choosePoint(event.latlng));
+document.querySelector("#resetButton").addEventListener("click", reset);
+document.querySelector("#locationButton").addEventListener("click", () => {
+  setStatus("Finding your location…");
+  navigator.geolocation.getCurrentPosition(
+    position => choosePoint(L.latLng(position.coords.latitude, position.coords.longitude)),
+    () => setStatus("Location access was unavailable.")
+  );
+});
+
+function choosePoint(point) {
+  if (!district || !district.getBounds().contains(point) || !pointInPolygon(point, district.getLatLngs()[0])) {
+    setStatus("That point is outside the supported district.");
+    return;
+  }
+  if (start && end) reset();
+  const marker = L.marker(point).addTo(map);
+  markers.push(marker);
+  if (!start) {
+    start = point;
+    document.querySelector("#startText").textContent = "✓ Starting point selected";
+    setStatus("Now choose a destination.");
+    return;
+  }
+  end = point;
+  document.querySelector("#endText").textContent = "✓ Destination selected";
+  findRoute();
+}
+
+async function findRoute() {
+  setStatus("Looking for a route…");
+  const query = new URLSearchParams({ start: `${start.lat},${start.lng}`, end: `${end.lat},${end.lng}` });
+  try {
+    const response = await fetch(`/api/route?${query}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "No route found");
+    routeLine = L.geoJSON(data.geometry, { style: { color: "#d17d18", weight: 6 } }).addTo(map);
+    map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+    setStatus(`${(data.distance / 1609.344).toFixed(2)} mi · about ${Math.max(1, Math.round(data.duration / 60))} min`);
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+function reset() {
+  markers.splice(0).forEach(marker => marker.remove());
+  if (routeLine) routeLine.remove();
+  start = end = routeLine = undefined;
+  document.querySelector("#startText").textContent = "1. Choose a starting point";
+  document.querySelector("#endText").textContent = "2. Choose a destination";
+  setStatus("Click the map to begin.");
+}
+
+function setStatus(message) { status.textContent = message; }
+
+function pointInPolygon(point, polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i], b = polygon[j];
+    if ((a.lat > point.lat) !== (b.lat > point.lat) && point.lng < (b.lng - a.lng) * (point.lat - a.lat) / (b.lat - a.lat) + a.lng) inside = !inside;
+  }
+  return inside;
+}
